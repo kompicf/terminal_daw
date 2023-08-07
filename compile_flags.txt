@@ -1,0 +1,5 @@
+-lncurses
+-Iinclude 
+-Wall
+-Wextra
+-Wpedantic
