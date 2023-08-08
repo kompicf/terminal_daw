@@ -3,8 +3,9 @@
 
 #include <ncurses.h>
 #include <sys/time.h>
-#include "short_types.h"
 #include <portaudio.h>
+#include "short_types.h"
+#include "play.h"
 
 extern float dt;
 extern int input_key;

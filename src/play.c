@@ -1,16 +1,16 @@
 #include "play.h"
-#include <curses.h>
-#include <ncurses.h>
-#include <string.h>
 #define MAGIC_NUMBER 1.05946309435929526456
 
-static i8 waves[4][32];
 PaStream *streams[4];
 PaError err;
-static double increment[4];
-static int amp[4];
-static double test[4];
-static char thing[4];
+struct channel{
+    i8 wave[32];
+    double increment;
+    double test;
+    int amp;
+    PaStream *stream;
+};
+static struct channel channels[4];
 
 static int play_callback( const void *inputBuffer,
                        void *outputBuffer,
@@ -23,36 +23,40 @@ static int play_callback( const void *inputBuffer,
     (void) statusFlags;
     (void) framesPerBuffer;
     i8 *out = outputBuffer;
-    i8 channel = *(i8*)userData;
+    struct channel *c = (struct channel*)userData;
 
     for(int i=0; i<256; ++i){
-        test[channel] += increment[channel];
-        out[i] = waves[channel][((int)test[channel])%32] * amp[channel];
-        if(test[channel] > 32) test[channel] -= 32;
+        c->test += c->increment;
+        out[i] = c->wave[((int)c->test)%32] * c->amp;
+        if(c->test > 32) c->test -= 32;
     }
 
     return 0;
 }
 
 void play_init(void){
-    for(int i=0; i<4; ++i) thing[i] = i;
     /* Initialize library before making any other calls. */
+    for(int i=0; i<4; ++i){
+        channels[i].increment = 0;
+        channels[i].test = 0;
+        channels[i].amp = 0;
+    }
     err = Pa_Initialize();
     if( err != paNoError ) goto error;
     
     /* Open an audio I/O stream. */
     for(int i=0; i<4; ++i){
-        err = Pa_OpenDefaultStream( &streams[i],
+        err = Pa_OpenDefaultStream( &channels[i].stream,
                                     0,          /* no input channels */
                                     1,
                                     paInt8,  // 8 bit output
                                     44100,
                                     256,        /* frames per buffer */
                                     play_callback,
-                                    &thing[i]);
+                                    &channels[i]);
         if( err != paNoError ) goto error;
     
-        err = Pa_StartStream( streams[i] );
+        err = Pa_StartStream( channels[i].stream );
         if( err != paNoError ) goto error;
     }
 
@@ -70,9 +74,9 @@ error:
 
 void play_stop(void){
     for(int i=0; i<4; ++i){
-        err = Pa_StopStream( streams[i] );
+        err = Pa_StopStream( channels[i].stream );
         if( err != paNoError ) goto error;
-        err = Pa_CloseStream( streams[i] );
+        err = Pa_CloseStream( channels[i].stream );
         if( err != paNoError ) goto error;
     }
     Pa_Terminate();
@@ -88,8 +92,7 @@ void play_change(i8 wave_in[32], int amplitude_in, int pitch_in, i8 channel){ //
     double freq = 440.0 * pow(MAGIC_NUMBER, pitch_in);
     double samples_per_wave = 44100.0/freq;
 
-    increment[channel] = 32.0/samples_per_wave;
-    amp[channel] = amplitude_in;
-    test[channel] = 0;
-    memcpy(waves[channel], wave_in, 32);
+    channels[channel].increment = 32.0/samples_per_wave;
+    channels[channel].amp = amplitude_in;
+    if(wave_in != NULL) memcpy(channels[channel].wave, wave_in, 32);
 }

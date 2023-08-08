@@ -1,7 +1,6 @@
 #ifndef RENDER_H_1234
 #define RENDER_H_1234
 
-#include <ncurses.h>
 #include "global.h"
 
 extern i8 saved_waves[8][32];

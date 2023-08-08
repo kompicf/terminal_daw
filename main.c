@@ -1,8 +1,5 @@
-#include <ncurses.h>
 #include <stdlib.h>
-#include "global.h"
 #include "update.h"
-#include "play.h"
 #include "render.h"
 
 int main(int argc, char *argv[]) {
