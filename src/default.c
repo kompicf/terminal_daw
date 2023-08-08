@@ -1,3 +1,4 @@
+#include "global.h"
 #include "render.h"
 #define CX cursorx[cursorchannel]
 #define CY cursory[cursorchannel]
@@ -22,7 +23,7 @@ struct data_t{
   i8 state;
 };
 struct data_t data[32][4];
-static i8 insertmode = 0;
+static enum {insert, replace, normal} mode;
 
 static i8 char_to_int(char x){
   switch(x){
@@ -49,9 +50,7 @@ char *note_names[13] = {
 static i8 global_octave = 0;
 
 void render_default_init(void){
-  // for(int i=0; i<32; ++i){
-  //   for(int j=0; j<4; ++j) playground[i][j][0] = 0;
-  // }
+  mode = normal;
 }
 
 void render_default_refresh(void){
@@ -92,8 +91,24 @@ void render_default_refresh(void){
   mvaddstr(7, 45, "space to start/stop playing");
   mvaddstr(8, 45, "space in insert mode to set to blank");
 
-  if(!insertmode){
-    if(input_key >= '1' && input_key <= '4') cursorchannel = input_key - '1';
+  switch(mode){
+  case normal:
+    // input
+    switch(input_key){
+      case 'w': if(CY > 0) CY--; break;
+      case 'a': if(CX > 0) CX--; break;
+      case 's': if(CY < 31) CY++; break;
+      case 'd': if(CX < 2) CX++; break;
+      case 'i': mode = insert; break;
+      case 'r': mode = replace; break;
+      case 'y': if(global_octave < 4) global_octave++; break;
+      case 't': if(global_octave > -4) global_octave--; break;
+      case ' ': play_all(); break;
+      default:
+        if(input_key >= '1' && input_key <= '4') cursorchannel = input_key - '1';
+        break;
+    }
+    // render
     switch(CX){
       case 0:
         mvaddch(CY+1, 5+cursorchannel*10, '<');
@@ -108,76 +123,76 @@ void render_default_refresh(void){
         break;
       default: break;
     }
+    break;
 
-    switch(input_key){
-      case 'w': if(CY > 0) CY--; break;
-      case 'a': if(CX > 0) CX--; break;
-      case 's': if(CY < 31) CY++; break;
-      case 'd': if(CX < 2) CX++; break;
-      case 'i': insertmode = 1; break;
-      case 'y': if(global_octave < 4) global_octave++; break;
-      case 't': if(global_octave > -4) global_octave--; break;
-      case ' ': play_all(); break;
+  case replace:
+    if(input_key == 'r') mode = normal;
+    goto normalreplace;
+  case insert:
+    if(input_key == 'i'){
+      mode = normal;
+      break;
+    }
+  normalreplace:
+    switch(CX){
+      case 0: // pitch
+        mvaddch(CY+1, 5+cursorchannel*10, '<');
+        mvaddch(CY+1, 6+cursorchannel*10, '=');
+        if(input_key == ' '){
+          data[CY][cursorchannel].state &= ~PITCH_B;
+          if(CY < 31 && mode == insert) CY++;
+          if(mode == replace) mode = normal;
+        }
+        else if(input_key == 't' && data[CY][cursorchannel].pitch > -48){
+          data[CY][cursorchannel].pitch -= 12;
+          data[CY][cursorchannel].state |= PITCH_B;
+          if(mode == replace) mode = normal;
+        }
+        else if(input_key == 'y' && data[CY][cursorchannel].pitch < 48){
+          data[CY][cursorchannel].pitch += 12;
+          data[CY][cursorchannel].state |= PITCH_B;
+          if(mode == replace) mode = normal;
+        }
+        else if(char_to_int(input_key) != -1){
+          data[CY][cursorchannel].pitch = char_to_int(input_key) + global_octave*12;
+          data[CY][cursorchannel].state |= PITCH_B;
+          if(CY < 31 && mode == insert) CY++;
+          if(mode == replace) mode = normal;
+        }
+        break;
+
+      case 1: // wave
+        mvaddch(CY+1, 5+cursorchannel*10, '=');
+        mvaddch(CY+1, 6+cursorchannel*10, '>');
+        if(input_key == ' '){
+          data[CY][cursorchannel].state &= ~WAVE_B;
+          mode = normal;
+        }
+      
+        else if(input_key >= '1' && input_key <= '8'){
+          data[CY][cursorchannel].wave = input_key - '0';
+          data[CY][cursorchannel].state |= WAVE_B;
+          mode = normal;
+        }
+        break;
+
+      case 2: // volume
+        if(input_key == ' '){
+          data[CY][cursorchannel].state &= ~VOLUME_B;
+          mode = normal;
+        }
+        else if(input_key >= '0' && input_key <= '8'){
+          data[CY][cursorchannel].volume = input_key - '0';
+          data[CY][cursorchannel].state |= VOLUME_B;
+          mode = normal;
+        }
+        mvaddch(CY+1, 10+cursorchannel*10, '=');
+        break;
       default: break;
     }
-  }
-
-  else{
-    if(input_key == 'i') insertmode = 0;
-    else{
-      switch(CX){
-        case 0: // pitch
-          mvaddch(CY+1, 5+cursorchannel*10, '<');
-          mvaddch(CY+1, 6+cursorchannel*10, '=');
-          if(input_key == ' '){
-            data[CY][cursorchannel].state &= ~PITCH_B;
-            CY++;
-          }
-          else if(input_key == 't' && data[CY][cursorchannel].pitch > -48){
-            data[CY][cursorchannel].pitch -= 12;
-            data[CY][cursorchannel].state |= PITCH_B;
-          }
-          else if(input_key == 'y' && data[CY][cursorchannel].pitch < 48){
-            data[CY][cursorchannel].pitch += 12;
-            data[CY][cursorchannel].state |= PITCH_B;
-          }
-          else if(char_to_int(input_key) != -1){
-            data[CY][cursorchannel].pitch = char_to_int(input_key) + global_octave*12;
-            data[CY][cursorchannel].state |= PITCH_B;
-            CY++;
-          }
-          break;
-
-        case 1: // wave
-          mvaddch(CY+1, 5+cursorchannel*10, '=');
-          mvaddch(CY+1, 6+cursorchannel*10, '>');
-          if(input_key == ' '){
-            data[CY][cursorchannel].state &= ~WAVE_B;
-            insertmode = 0;
-          }
-        
-          else if(input_key >= '1' && input_key <= '8'){
-            data[CY][cursorchannel].wave = input_key - '0';
-            data[CY][cursorchannel].state |= WAVE_B;
-            insertmode = 0;
-          }
-          break;
-
-        case 2: // volume
-          if(input_key == ' '){
-            data[CY][cursorchannel].state &= ~VOLUME_B;
-            insertmode = 0;
-          }
-          else if(input_key >= '0' && input_key <= '8'){
-            data[CY][cursorchannel].volume = input_key - '0';
-            data[CY][cursorchannel].state |= VOLUME_B;
-            insertmode = 0;
-          }
-          mvaddch(CY+1, 10+cursorchannel*10, '=');
-          break;
-        default: break;
-      }
-    }
+    
+    break;
+  default: break;
   }
 }
 
