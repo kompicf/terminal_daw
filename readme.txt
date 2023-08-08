@@ -8,4 +8,31 @@ compile and run:
 
 inspired by patatracker
 not finished
-this is my first project
+this is my first real project
+
+quick guide:
+  wavemaker:
+    o to enter/exit wavemaker
+    wasd/hjkl to move
+    enter to set sample (and move to right to make it more efficient)
+    space to start/stop wave preview
+    f to save wave to one of 8 places (press again to cancel)
+    g to load wave from one of 8 places (press again to cancel)
+  default:
+    q to exit, o to enter wavemaker
+    wasd to move
+    1 2 3 4 to switch channels
+    y to increment, t to decrement global octave
+    i to enter/exit insert mode:
+      on first column zsxcfvgbnjmk to enter note (on qwerty keyboard image its a piano starting with A (z) and ending with G# (k))
+      on first column space to clear note and move one place down
+      on first column y to increase and t to decrease octave locally
+      on second column 12345678 to set wave you made in wavemaker
+      on third column 012345678 to set volume (0 == mute)
+
+todo:
+  config file
+  option to change tempo
+  use more than 32 notes
+  save project
+  export to wav
