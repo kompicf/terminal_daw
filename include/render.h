@@ -2,6 +2,7 @@
 #define RENDER_H_1234
 
 #include "global.h"
+#include "config.h"
 
 extern i8 saved_waves[8][32];
 extern i8 *current_wave;

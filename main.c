@@ -1,6 +1,9 @@
 #include <stdlib.h>
+#include "global.h"
 #include "update.h"
 #include "render.h"
+
+enum {def, wave, key} program_state;
 
 int main(int argc, char *argv[]) {
 	// not used for now
@@ -18,26 +21,40 @@ int main(int argc, char *argv[]) {
 	update_init();
 	play_init();
 	render_default_init();
+	load_keybinds();
 
-	i8 wavemaker = 0;
+	program_state = def;
+
 	i8 running = 1;
   while (running) {
 		update_all();
 
-		switch (input_key){
-			case 'o':
-				wavemaker = ~wavemaker;
+		if(input_key == keybinds.open_wavemaker){
+			if(program_state == wave) program_state = def;
+			else program_state = wave;
+		}
+		else if(input_key == keybinds.quit){
+			if(program_state == wave) program_state = def;
+			else running = 0;
+		}
+		else if(input_key == keybinds.open_keybind_editor){
+			program_state = key;
+		}
+
+		switch(program_state){
+			case def:
+				render_default_refresh();
 				break;
-			case 'q':
-				if(wavemaker) wavemaker = ~wavemaker;
-				else running = 0;
+			case wave:
+				wavemaker_refresh();
+				break;
+			case key:
+				keybind_editor();
+				program_state = def;
 				break;
 			default:
 				break;
-    }
-
-		if(wavemaker) wavemaker_refresh();
-		else render_default_refresh();
+		}
     refresh();
   }
 

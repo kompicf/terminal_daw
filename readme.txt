@@ -31,9 +31,12 @@ quick guide:
       on third column 012345678 to set volume (0 == mute)
     r to enter/exit replace mode:
       same as insert mode, but goes back to normal mode when pitch is changed/cleared
+  keybind editor: l
+    set custom keybinds
+    if you want default or something is broken remove config.txt
 
 todo:
-  config file
+  [+]config file
   option to change tempo
   use more than 32 notes
   save project

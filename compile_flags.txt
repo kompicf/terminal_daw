@@ -1,0 +1,6 @@
+-Wall
+-Wextra
+-Wpedantic
+-lncurses
+-lportauio
+-Iinclude

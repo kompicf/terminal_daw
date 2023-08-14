@@ -1,4 +1,6 @@
 #include <string.h>
+#include "config.h"
+#include "global.h"
 #include "render.h"
 
 // could have made same as default.c
@@ -36,40 +38,21 @@ int wavemaker_refresh(void){
   for(int i=0; i<18; ++i){
     mvaddstr(i, 0, render[i]);
   }
-  switch(input_key){
-    case 'h': //left
-    case 'a':
-      if(currentX != 0) currentX--;
-      break;
-    case 'l': //right
-    case 'd':
-      if(currentX != 31) currentX++;
-      break;
-    case 'j': //down
-    case 's':
-      if(currentY != 15) currentY++;
-      break;
-    case 'k': //up
-    case 'w':
-      if(currentY != 0) currentY--;
-      break;
-    case '\n': //set
-      current_wave[(size_t)currentX] = currentY-8;
-      if(currentX != 31) currentX++;
-      break;
-    case ' ': // play
-      playing = ~playing;
-      if(playing) play_change(current_wave, 4, 0, 0);
-      else play_change(current_wave, 0, 0, 0);
-      break;
-    case 'f': //save
-      save_state = ~save_state;
-      break;
-    case 'g': //open
-      open_state = ~open_state;
-    default:
-      break;
-  }
+  if(input_key == keybinds.left && currentX != 0) currentX--;
+  else if(input_key == keybinds.right && currentX != 31) currentX++;
+  else if(input_key == keybinds.down && currentY != 15) currentY++;
+  else if(input_key == keybinds.up && currentY != 0) currentY--;
+  else if(input_key == keybinds.set_sample){
+    current_wave[(size_t)currentX] = currentY-8;
+    if(currentX != 31) currentX++;}
+  else if(input_key == keybinds.play){
+    playing = ~playing;
+    if(playing) play_change(current_wave, 4, 0, 0);
+    else play_change(current_wave, 0, 0, 0);}
+  else if(input_key == keybinds.save_wave) save_state = ~save_state;
+  else if(input_key == keybinds.load_wave) open_state = ~open_state;
+
+
   if(save_state && input_key <= '8' && input_key >= '1'){
     save_state = 0;
     memcpy(saved_waves[input_key-'1'], current_wave, 32);

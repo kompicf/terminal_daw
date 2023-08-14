@@ -1,3 +1,4 @@
+#include "config.h"
 #include "global.h"
 #include "render.h"
 #define CX cursorx[cursorchannel]
@@ -94,20 +95,16 @@ void render_default_refresh(void){
   switch(mode){
   case normal:
     // input
-    switch(input_key){
-      case 'w': if(CY > 0) CY--; break;
-      case 'a': if(CX > 0) CX--; break;
-      case 's': if(CY < 31) CY++; break;
-      case 'd': if(CX < 2) CX++; break;
-      case 'i': mode = insert; break;
-      case 'r': mode = replace; break;
-      case 'y': if(global_octave < 4) global_octave++; break;
-      case 't': if(global_octave > -4) global_octave--; break;
-      case ' ': play_all(); break;
-      default:
-        if(input_key >= '1' && input_key <= '4') cursorchannel = input_key - '1';
-        break;
-    }
+    if(input_key == keybinds.up && CY > 0) CY--;
+    else if(input_key == keybinds.left && CX > 0) CX--;
+    else if(input_key == keybinds.down && CY < 31) CY++;
+    else if(input_key == keybinds.right && CX < 2) CX++;
+    else if(input_key == keybinds.insert_mode) mode = insert;
+    else if(input_key == keybinds.replace_mode) mode = replace;
+    else if(input_key == keybinds.increase_octave && global_octave < 4) global_octave++;
+    else if(input_key == keybinds.decrease_octave && global_octave > -4) global_octave--;
+    else if(input_key == keybinds.play) play_all();
+    else if(input_key >= '1' && input_key <= '4') cursorchannel = input_key - '1';
     // render
     switch(CX){
       case 0:
@@ -126,10 +123,10 @@ void render_default_refresh(void){
     break;
 
   case replace:
-    if(input_key == 'r') mode = normal;
+    if(input_key == keybinds.replace_mode) mode = normal;
     goto normalreplace;
   case insert:
-    if(input_key == 'i'){
+    if(input_key == keybinds.insert_mode){
       mode = normal;
       break;
     }
@@ -138,17 +135,17 @@ void render_default_refresh(void){
       case 0: // pitch
         mvaddch(CY+1, 5+cursorchannel*10, '<');
         mvaddch(CY+1, 6+cursorchannel*10, '=');
-        if(input_key == ' '){
+        if(input_key == keybinds.play){
           data[CY][cursorchannel].state &= ~PITCH_B;
           if(CY < 31 && mode == insert) CY++;
           if(mode == replace) mode = normal;
         }
-        else if(input_key == 't' && data[CY][cursorchannel].pitch > -48){
+        else if(input_key == keybinds.decrease_octave && data[CY][cursorchannel].pitch > -48){
           data[CY][cursorchannel].pitch -= 12;
           data[CY][cursorchannel].state |= PITCH_B;
           if(mode == replace) mode = normal;
         }
-        else if(input_key == 'y' && data[CY][cursorchannel].pitch < 48){
+        else if(input_key == keybinds.increase_octave && data[CY][cursorchannel].pitch < 48){
           data[CY][cursorchannel].pitch += 12;
           data[CY][cursorchannel].state |= PITCH_B;
           if(mode == replace) mode = normal;
@@ -164,7 +161,7 @@ void render_default_refresh(void){
       case 1: // wave
         mvaddch(CY+1, 5+cursorchannel*10, '=');
         mvaddch(CY+1, 6+cursorchannel*10, '>');
-        if(input_key == ' '){
+        if(input_key == keybinds.play){
           data[CY][cursorchannel].state &= ~WAVE_B;
           mode = normal;
         }
@@ -177,7 +174,7 @@ void render_default_refresh(void){
         break;
 
       case 2: // volume
-        if(input_key == ' '){
+        if(input_key == keybinds.play){
           data[CY][cursorchannel].state &= ~VOLUME_B;
           mode = normal;
         }
@@ -211,7 +208,7 @@ void play_all(void){
       play_change(wave[j], volume[j], pitch[j], j);
     }
     mvaddstr(i+1, 43, "<-");
-    if(getch() == ' ') goto end;
+    if(getch() == keybinds.play) goto end;
     refresh();
     Pa_Sleep(100);
   }
