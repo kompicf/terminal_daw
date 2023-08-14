@@ -27,6 +27,7 @@ struct Keybinds{
   // modes
   char open_wavemaker;
   char open_keybind_editor;
+  char open_command_line;
   char quit;
 };
 extern struct Keybinds keybinds;

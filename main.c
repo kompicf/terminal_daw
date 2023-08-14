@@ -2,8 +2,9 @@
 #include "global.h"
 #include "update.h"
 #include "render.h"
+#include "cmd.h"
 
-enum {def, wave, key} program_state;
+enum {def, wave, key, cmd} program_state;
 
 int main(int argc, char *argv[]) {
 	// not used for now
@@ -40,20 +41,23 @@ int main(int argc, char *argv[]) {
 		else if(input_key == keybinds.open_keybind_editor){
 			program_state = key;
 		}
+		else if(input_key == keybinds.open_command_line){
+			program_state = cmd;
+		}
 
 		switch(program_state){
-			case def:
-				render_default_refresh();
-				break;
-			case wave:
-				wavemaker_refresh();
-				break;
+			case def: render_default_refresh(); break;
+			case wave: wavemaker_refresh(); break;
 			case key:
 				keybind_editor();
 				program_state = def;
 				break;
-			default:
+			case cmd:
+				render_default_refresh();
+				handle_commands();
+				program_state = def;
 				break;
+			default: break;
 		}
     refresh();
   }

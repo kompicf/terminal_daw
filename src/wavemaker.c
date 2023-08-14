@@ -1,6 +1,3 @@
-#include <string.h>
-#include "config.h"
-#include "global.h"
 #include "render.h"
 
 // could have made same as default.c
@@ -26,7 +23,6 @@ static char render[18][67] = {
 };
 
 i8 *current_wave;
-i8 saved_waves[8][32];
 static i8 currentX = 0;
 static i8 currentY = 0;
 // could have done bitmask
@@ -55,11 +51,11 @@ int wavemaker_refresh(void){
 
   if(save_state && input_key <= '8' && input_key >= '1'){
     save_state = 0;
-    memcpy(saved_waves[input_key-'1'], current_wave, 32);
+    memcpy(current_project.saved_waves[input_key-'1'], current_wave, 32);
   }
   if(open_state && input_key <= '8' && input_key >= '1'){
     open_state = 0;
-    memcpy(current_wave, saved_waves[input_key-'1'], 32);
+    memcpy(current_wave, current_project.saved_waves[input_key-'1'], 32);
   }
   for(int i=0; i<32; ++i){
     mvaddch(current_wave[i]+9, 2*i+1, '#');

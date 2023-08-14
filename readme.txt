@@ -34,10 +34,18 @@ quick guide:
   keybind editor: l
     set custom keybinds
     if you want default or something is broken remove config.txt
+  command mode: /
+    type a command and press enter
+    example:
+    > tempo 60
+    (dont type > )
+        
+    current commands:
+      tempo x: set tempo to x bpm
 
 todo:
   [+]config file
-  option to change tempo
+  [+]option to change tempo
   use more than 32 notes
   save project
   export to wav

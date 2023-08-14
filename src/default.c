@@ -1,5 +1,3 @@
-#include "config.h"
-#include "global.h"
 #include "render.h"
 #define CX cursorx[cursorchannel]
 #define CY cursory[cursorchannel]
@@ -17,13 +15,6 @@ static char frame[2][42] = {
 };
 
 // y, channel, x[note, wave, volume, cmd]
-struct data_t{
-  i8 pitch;
-  i8 wave;
-  i8 volume;
-  i8 state;
-};
-struct data_t data[32][4];
 static enum {insert, replace, normal} mode;
 
 static i8 char_to_int(char x){
@@ -52,6 +43,7 @@ static i8 global_octave = 0;
 
 void render_default_init(void){
   mode = normal;
+  current_project.tempo = 100;
 }
 
 void render_default_refresh(void){
@@ -65,32 +57,22 @@ void render_default_refresh(void){
 
     for(int j=0; j<4; ++j){
       // pitch
-      if(data[i][j].state & PITCH_B){
-        mvaddstr(i+1, j*10+2, note_names[((int)data[i][j].pitch+48)%12]);
-        mvaddch(i+1, j*10+4, (char)((data[i][j].pitch)/12+4) + '0');
+      if(current_project.data[i][j].state & PITCH_B){
+        mvaddstr(i+1, j*10+2, note_names[((int)current_project.data[i][j].pitch+48)%12]);
+        mvaddch(i+1, j*10+4, (char)((current_project.data[i][j].pitch)/12+4) + '0');
       }
       else mvaddstr(i+1, j*10+2, "---");
       // wave
-      if(data[i][j].state & WAVE_B)
-        mvaddch(i+1, j*10+7, data[i][j].wave+'0');
+      if(current_project.data[i][j].state & WAVE_B)
+        mvaddch(i+1, j*10+7, current_project.data[i][j].wave+'0');
       else mvaddch(i+1, j*10+7, '-');
       // volume
-      if(data[i][j].state & VOLUME_B)
-        mvaddch(i+1, j*10+9, data[i][j].volume+'0');
+      if(current_project.data[i][j].state & VOLUME_B)
+        mvaddch(i+1, j*10+9, current_project.data[i][j].volume+'0');
       else mvaddch(i+1, j*10+9, '-');
     }
   }
   mvaddstr(33, 1, frame[0]);
-
-  mvaddstr(0, 45, "Use wasd to move");
-  mvaddstr(1, 45, "i to enter/exit insert mode");
-  mvaddstr(2, 45, "zsxdcvgbhnjmk to enter notes in insert mode");
-  mvaddstr(3, 45, "y to increase 1 octave, t to decrease 1 octave");
-  mvaddstr(4, 45, "y and t outside insertmode to change octave globally");
-  mvaddstr(5, 45, "columns: 1-pitch, 2-wave(press o), 3-volume");
-  mvaddstr(6, 45, "1234 to change channels");
-  mvaddstr(7, 45, "space to start/stop playing");
-  mvaddstr(8, 45, "space in insert mode to set to blank");
 
   switch(mode){
   case normal:
@@ -136,23 +118,23 @@ void render_default_refresh(void){
         mvaddch(CY+1, 5+cursorchannel*10, '<');
         mvaddch(CY+1, 6+cursorchannel*10, '=');
         if(input_key == keybinds.play){
-          data[CY][cursorchannel].state &= ~PITCH_B;
+          current_project.data[CY][cursorchannel].state &= ~PITCH_B;
           if(CY < 31 && mode == insert) CY++;
           if(mode == replace) mode = normal;
         }
-        else if(input_key == keybinds.decrease_octave && data[CY][cursorchannel].pitch > -48){
-          data[CY][cursorchannel].pitch -= 12;
-          data[CY][cursorchannel].state |= PITCH_B;
+        else if(input_key == keybinds.decrease_octave && current_project.data[CY][cursorchannel].pitch > -48){
+          current_project.data[CY][cursorchannel].pitch -= 12;
+          current_project.data[CY][cursorchannel].state |= PITCH_B;
           if(mode == replace) mode = normal;
         }
-        else if(input_key == keybinds.increase_octave && data[CY][cursorchannel].pitch < 48){
-          data[CY][cursorchannel].pitch += 12;
-          data[CY][cursorchannel].state |= PITCH_B;
+        else if(input_key == keybinds.increase_octave && current_project.data[CY][cursorchannel].pitch < 48){
+          current_project.data[CY][cursorchannel].pitch += 12;
+          current_project.data[CY][cursorchannel].state |= PITCH_B;
           if(mode == replace) mode = normal;
         }
         else if(char_to_int(input_key) != -1){
-          data[CY][cursorchannel].pitch = char_to_int(input_key) + global_octave*12;
-          data[CY][cursorchannel].state |= PITCH_B;
+          current_project.data[CY][cursorchannel].pitch = char_to_int(input_key) + global_octave*12;
+          current_project.data[CY][cursorchannel].state |= PITCH_B;
           if(CY < 31 && mode == insert) CY++;
           if(mode == replace) mode = normal;
         }
@@ -162,25 +144,25 @@ void render_default_refresh(void){
         mvaddch(CY+1, 5+cursorchannel*10, '=');
         mvaddch(CY+1, 6+cursorchannel*10, '>');
         if(input_key == keybinds.play){
-          data[CY][cursorchannel].state &= ~WAVE_B;
+          current_project.data[CY][cursorchannel].state &= ~WAVE_B;
           mode = normal;
         }
       
         else if(input_key >= '1' && input_key <= '8'){
-          data[CY][cursorchannel].wave = input_key - '0';
-          data[CY][cursorchannel].state |= WAVE_B;
+          current_project.data[CY][cursorchannel].wave = input_key - '0';
+          current_project.data[CY][cursorchannel].state |= WAVE_B;
           mode = normal;
         }
         break;
 
       case 2: // volume
         if(input_key == keybinds.play){
-          data[CY][cursorchannel].state &= ~VOLUME_B;
+          current_project.data[CY][cursorchannel].state &= ~VOLUME_B;
           mode = normal;
         }
         else if(input_key >= '0' && input_key <= '8'){
-          data[CY][cursorchannel].volume = input_key - '0';
-          data[CY][cursorchannel].state |= VOLUME_B;
+          current_project.data[CY][cursorchannel].volume = input_key - '0';
+          current_project.data[CY][cursorchannel].state |= VOLUME_B;
           mode = normal;
         }
         mvaddch(CY+1, 10+cursorchannel*10, '=');
@@ -197,20 +179,20 @@ void play_all(void){
   int pitch[4] = {0};
   int volume[4] = {0};
   i8 *wave[4];
-  for(int i=0; i<4; ++i) wave[i] = saved_waves[0];
+  for(int i=0; i<4; ++i) wave[i] = current_project.saved_waves[0];
   for(int i=0; i<32; ++i){
     for(int j=0; j<4; ++j){
       // apply changes only if they happen
-      if(data[i][j].state & PITCH_B) pitch[j] = data[i][j].pitch;
-      if(data[i][j].state & WAVE_B) wave[j] = saved_waves[data[i][j].wave - 1];
+      if(current_project.data[i][j].state & PITCH_B) pitch[j] = current_project.data[i][j].pitch;
+      if(current_project.data[i][j].state & WAVE_B) wave[j] = current_project.saved_waves[current_project.data[i][j].wave - 1];
       else wave[j] = NULL;
-      if(data[i][j].state & VOLUME_B) volume[j] = data[i][j].volume;
+      if(current_project.data[i][j].state & VOLUME_B) volume[j] = current_project.data[i][j].volume;
       play_change(wave[j], volume[j], pitch[j], j);
     }
     mvaddstr(i+1, 43, "<-");
     if(getch() == keybinds.play) goto end;
     refresh();
-    Pa_Sleep(100);
+    Pa_Sleep(6000/current_project.tempo); // Pa_Sleep is in ms, tempo is in bpm
   }
 
 end:

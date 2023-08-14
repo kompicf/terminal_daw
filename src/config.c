@@ -16,8 +16,9 @@ struct Keybinds default_keybinds = {
   .play_from_cursor = ' ',
   .insert_mode = 'i',
   .replace_mode = 'r',
-  .open_wavemaker = '0',
+  .open_wavemaker = 'o',
   .open_keybind_editor = 'l',
+  .open_command_line = '/',
   .quit = 'q'
 };
 
@@ -25,7 +26,7 @@ int valid_key(char key){
   // letters are valid
   if(key <= 'z' && key >= 'a') return 1;
   // other valid characters:
-  if(key == ' ' || key == '\n') return 1;
+  if(key == ' ' || key == '\n' || key == '/') return 1;
   return 0;
 }
 
@@ -67,6 +68,7 @@ void keybind_editor(void){
   DO(replace_mode);
   DO(open_wavemaker);
   DO(open_keybind_editor);
+  DO(open_command_line);
   DO(quit);
 
   save_keybinds();
