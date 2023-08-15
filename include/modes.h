@@ -1,5 +1,5 @@
-#ifndef RENDER_H_1234
-#define RENDER_H_1234
+#ifndef MODES_H_1234
+#define MODES_H_1234
 
 #include "global.h"
 
@@ -11,6 +11,7 @@ extern int wavemaker_refresh(void);
 extern void render_default_refresh(void);
 extern void render_default_init(void);
 extern void play_all(void);
+extern char *note_names[13];
 
 // cmd
 extern void handle_commands(void);
@@ -41,6 +42,7 @@ struct Keybinds{
   char open_keybind_editor;
   char open_command_line;
   char quit;
+  char keyboard[12];
 };
 extern struct Keybinds keybinds;
 extern void load_keybinds(void);

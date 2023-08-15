@@ -19,7 +19,8 @@ struct Keybinds default_keybinds = {
   .open_wavemaker = 'o',
   .open_keybind_editor = 'l',
   .open_command_line = '/',
-  .quit = 'q'
+  .quit = 'q',
+  .keyboard = "zsxcfvgbnjmk"
 };
 
 int valid_key(char key){
@@ -74,36 +75,61 @@ static void display_keybinds(void){
   PRINT(open_keybind_editor);
   PRINT(open_command_line);
   PRINT(quit);
+  for(int i=0; i<12; ++i){
+    mvprintw(i+2, 30, "%3s: %c", note_names[i], keybinds.keyboard[i]);
+  }
 }
+
 
 void keybind_editor(void){
   int cursory = 0;
+  int cursorx = 0;
   int key = getch();
 
-  mvaddstr(0, 0, "Use 2 to go up, 1 for down, 3 to change key, 4 to exit");
-  while(key != '4'){
+  mvaddstr(0, 0, "1 2 3 4 - left, right, down, up, 5 - change key, 6 - exit");
+  while(key != '6'){
     key = getch();
-    mvaddch(cursory+2, 0, '-');
+    mvaddch(cursory+2, cursorx*29, '-');
     display_keybinds();
 
     switch(key){
       case '1':
-        if(cursory < (int)sizeof(struct Keybinds)-1){
-          mvaddch(cursory+2, 0, ' ');
-          cursory++;
+        if(cursorx == 1){
+          mvaddch(cursory+2, cursorx*29, ' ');
+          cursorx = 0;
+          cursory = 0;
         }
         break;
       case '2':
-        if(cursory > 0){
-          mvaddch(cursory+2, 0, ' ');
-          cursory--;
+        if(cursorx == 0){
+          mvaddch(cursory+2, cursorx*29, ' ');
+          cursorx = 1;
+          cursory = 0;
         }
         break;
       case '3':
-        mvaddch(cursory+2, 0, '>');
+        if(cursory < 11){
+          mvaddch(cursory+2, cursorx*29, ' ');
+          cursory++;
+        } else if(cursory < 16 && cursorx == 0){
+          mvaddch(cursory+2, cursorx*29, ' ');
+          cursory++;
+        }
+        break;
+      case '4':
+        if(cursory > 0){
+          mvaddch(cursory+2, cursorx*29, ' ');
+          cursory--;
+        }
+        break;
+      case '5':
+        mvaddch(cursory+2, cursorx*29, '>');
         while(!valid_key(key)){ key = getch(); }
-        ((char*)&keybinds)[cursory] = key;
-        mvaddch(cursory+2, 0, '-');
+        if(cursorx == 0)
+          ((char*)&keybinds)[cursory] = key;
+        else
+          keybinds.keyboard[cursory] = key;
+        mvaddch(cursory+2, cursorx*29, '-');
         break;
       default: break;
     }
