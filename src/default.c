@@ -18,21 +18,10 @@ static char frame[2][42] = {
 static enum {insert, replace, normal} mode;
 
 static i8 char_to_int(char x){
-  switch(x){
-    case 'z': return 0;
-    case 's': return 1;
-    case 'x': return 2;
-    case 'c': return 3;
-    case 'f': return 4;
-    case 'v': return 5;
-    case 'g': return 6;
-    case 'b': return 7;
-    case 'n': return 8;
-    case 'j': return 9;
-    case 'm': return 10;
-    case 'k': return 11;
-    default: return -1;
+  for(int i=0; i<12; ++i){
+    if(keybinds.keyboard[i] == x) return i;
   }
+  return -1;
 }
 
 char *note_names[13] = {
