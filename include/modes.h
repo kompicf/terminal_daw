@@ -1,9 +1,21 @@
-#ifndef CONFIG_H_2954672
-#define CONFIG_H_2954672
+#ifndef RENDER_H_1234
+#define RENDER_H_1234
 
-#include <stdio.h>
 #include "global.h"
 
+// wavemaker
+extern i8 *current_wave;
+extern int wavemaker_refresh(void);
+
+// default
+extern void render_default_refresh(void);
+extern void render_default_init(void);
+extern void play_all(void);
+
+// cmd
+extern void handle_commands(void);
+
+// config
 struct Keybinds{
   char increase_octave;
   char decrease_octave;
@@ -34,4 +46,6 @@ extern struct Keybinds keybinds;
 extern void load_keybinds(void);
 extern void save_keybinds(void);
 extern void keybind_editor(void);
+
 #endif
+

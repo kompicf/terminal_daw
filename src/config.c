@@ -1,4 +1,4 @@
-#include "config.h"
+#include "modes.h"
 
 struct Keybinds keybinds;
 
@@ -44,32 +44,70 @@ void save_keybinds(void){
   fwrite(&keybinds, sizeof keybinds, 1, file);
 }
 
-#define DO(...)\
-  mvprintw(2, 2, #__VA_ARGS__":");\
-  refresh();\
-  while(!valid_key(key)){ key = getch(); }\
-  keybinds.__VA_ARGS__ = key;\
-  key = 0;
+#define PRINT(...)\
+  if(keybinds.__VA_ARGS__ == '\n')\
+    mvprintw(2+i, 2, #__VA_ARGS__": '\\n'");\
+  else\
+    mvprintw(2+i, 2, #__VA_ARGS__": '%c'", keybinds.__VA_ARGS__);\
+  i++;
+
+static void display_keybinds(void){
+  int i = 0;
+  PRINT(increase_octave);
+  PRINT(decrease_octave);
+
+  PRINT(up);
+  PRINT(down);
+  PRINT(left);
+  PRINT(right);
+
+  PRINT(save_wave);
+  PRINT(load_wave);
+  PRINT(set_sample);
+
+  PRINT(play);
+  PRINT(play_from_cursor);
+  PRINT(insert_mode);
+  PRINT(replace_mode);
+
+  PRINT(open_wavemaker);
+  PRINT(open_keybind_editor);
+  PRINT(open_command_line);
+  PRINT(quit);
+}
 
 void keybind_editor(void){
-  char key = 0;
-  DO(increase_octave);
-  DO(decrease_octave);
-  DO(up);
-  DO(down);
-  DO(left);
-  DO(right);
-  DO(save_wave);
-  DO(load_wave);
-  DO(set_sample);
-  DO(play);
-  DO(play_from_cursor);
-  DO(insert_mode);
-  DO(replace_mode);
-  DO(open_wavemaker);
-  DO(open_keybind_editor);
-  DO(open_command_line);
-  DO(quit);
+  int cursory = 0;
+  int key = getch();
+
+  mvaddstr(0, 0, "Use 2 to go up, 1 for down, 3 to change key, 4 to exit");
+  while(key != '4'){
+    key = getch();
+    mvaddch(cursory+2, 0, '-');
+    display_keybinds();
+
+    switch(key){
+      case '1':
+        if(cursory < (int)sizeof(struct Keybinds)-1){
+          mvaddch(cursory+2, 0, ' ');
+          cursory++;
+        }
+        break;
+      case '2':
+        if(cursory > 0){
+          mvaddch(cursory+2, 0, ' ');
+          cursory--;
+        }
+        break;
+      case '3':
+        mvaddch(cursory+2, 0, '>');
+        while(!valid_key(key)){ key = getch(); }
+        ((char*)&keybinds)[cursory] = key;
+        mvaddch(cursory+2, 0, '-');
+        break;
+      default: break;
+    }
+  }
 
   save_keybinds();
 }

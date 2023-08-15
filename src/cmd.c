@@ -1,4 +1,4 @@
-#include "cmd.h"
+#include "modes.h"
 
 static int is_valid(char c){
   if(c >= 'a' && c <= 'z') return 1;

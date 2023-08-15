@@ -1,8 +1,6 @@
 #include <stdlib.h>
-#include "global.h"
+#include "modes.h"
 #include "update.h"
-#include "render.h"
-#include "cmd.h"
 
 enum {def, wave, key, cmd} program_state;
 
@@ -10,6 +8,7 @@ int main(int argc, char *argv[]) {
 	// not used for now
 	(void) argc;
 	(void) argv;
+
 	// ncurses init
   initscr();
   noecho();

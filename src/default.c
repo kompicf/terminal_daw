@@ -1,4 +1,4 @@
-#include "render.h"
+#include "modes.h"
 #define CX cursorx[cursorchannel]
 #define CY cursory[cursorchannel]
 #define PITCH_B 4

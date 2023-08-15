@@ -1,4 +1,4 @@
-#include "render.h"
+#include "modes.h"
 
 // could have made same as default.c
 static char render[18][67] = {
@@ -63,13 +63,7 @@ int wavemaker_refresh(void){
   }
   mvaddch(currentY+1, 2*currentX+1, '@');
   mvaddch(currentY+1, 2*currentX+2, '@');
-  mvaddstr(20, 0,
-    "use wasd or hjkl to move, enter to set sample,\n"
-    "o to exit wavemaker\n"
-    "f to save wave (f again to cancel)\n"
-    "g to open wave (g again to cancel)\n"
-    "space to preview wave (space again to stop)");
-  if(save_state) mvaddstr(22, 0, "press numbere 1-8 to save\n");
-  if(open_state) mvaddstr(23, 0, "press numbere 1-8 to open\n");
+  if(save_state) mvaddstr(20, 0, "press numbere 1-8 to save\n");
+  if(open_state) mvaddstr(20, 0, "press numbere 1-8 to open\n");
   return 0;
 }
