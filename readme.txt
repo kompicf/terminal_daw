@@ -1,3 +1,5 @@
+[I stopped working on this, but I might continue next summer.]
+
 Ultra simple terminal 8bit tracker
 
 dependencies:
